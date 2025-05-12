@@ -291,6 +291,9 @@ class Trainer:
         self.train_dataloader.dataset.sample_data_per_epoch()  ### for 2000h DNS3 dataset
         self.train_bar = tqdm(self.train_dataloader, ncols=150)
 
+        generator_loss = self.dacd.module.generator_loss if self.world_size > 1 else self.dacd.generator_loss
+        discriminator_loss = self.dacd.module.discriminator_loss if self.world_size > 1 else self.dacd.discriminator_loss
+
         for step, true_wav in enumerate(self.train_bar, 1):
             fs = self.default_fs
             true_wav = true_wav.to(self.device)     # (B, T) 
@@ -300,7 +303,7 @@ class Trainer:
                                          size=(1,), device=self.device)
             esti_wav, commit_loss = self.generator(true_wav, bandwidth_id=bandwidth_id)
             
-            loss_gen_dac, loss_fm_dac = self.dacd.module.generator_loss(esti_wav.unsqueeze(1), true_wav.unsqueeze(1))
+            loss_gen_dac, loss_fm_dac = generator_loss(esti_wav.unsqueeze(1), true_wav.unsqueeze(1))
             _, gen_score_mpd, fmap_rs_mpd, fmap_gs_mpd = self.mpd(
                 y=true_wav, y_hat=esti_wav, bandwidth_id=bandwidth_id,
             )
@@ -338,7 +341,7 @@ class Trainer:
             self.optimizer_g.step()
 
             # For discriminator
-            loss_dac = self.dacd.module.discriminator_loss(esti_wav.detach().unsqueeze(1), true_wav.unsqueeze(1))
+            loss_dac = discriminator_loss(esti_wav.detach().unsqueeze(1), true_wav.unsqueeze(1))
             real_score_mpd, gen_score_mpd, _, _ = self.mpd(y=true_wav, y_hat=esti_wav.detach(), bandwidth_id=bandwidth_id)
             real_score_mrd, gen_score_mrd, _, _ = self.mrd(y=true_wav, y_hat=esti_wav.detach(), bandwidth_id=bandwidth_id)
             loss_mpd, loss_mpd_real, _ = self.disc_loss(
@@ -398,6 +401,10 @@ class Trainer:
         total_loss_feat = 0
         total_loss_dis = 0
         self.validation_bar = tqdm(self.validation_dataloader, ncols=150)
+        
+        generator_loss = self.dacd.module.generator_loss if self.world_size > 1 else self.dacd.generator_loss
+        discriminator_loss = self.dacd.module.discriminator_loss if self.world_size > 1 else self.dacd.discriminator_loss
+        
         for step, true_wav in enumerate(self.validation_bar, 1):
             fs = self.default_fs
             true_wav = true_wav.to(self.device)     # (B, 1, T) 
@@ -407,7 +414,7 @@ class Trainer:
                                          size=(1,), device=self.device)
             esti_wav, commit_loss = self.generator(true_wav, bandwidth_id=bandwidth_id)
             
-            loss_gen_dac, loss_fm_dac = self.dacd.module.generator_loss(esti_wav.unsqueeze(1), true_wav.unsqueeze(1))
+            loss_gen_dac, loss_fm_dac = generator_loss(esti_wav.unsqueeze(1), true_wav.unsqueeze(1))
             _, gen_score_mpd, fmap_rs_mpd, fmap_gs_mpd = self.mpd(
                 y=true_wav, y_hat=esti_wav, bandwidth_id=bandwidth_id,
             )
@@ -440,7 +447,7 @@ class Trainer:
             total_loss_feat += loss_feat.item()
 
             # For discriminator
-            loss_dac = self.dacd.module.discriminator_loss(esti_wav.detach().unsqueeze(1), true_wav.unsqueeze(1))
+            loss_dac = discriminator_loss(esti_wav.detach().unsqueeze(1), true_wav.unsqueeze(1))
             real_score_mpd, gen_score_mpd, _, _ = self.mpd(y=true_wav, y_hat=esti_wav, bandwidth_id=bandwidth_id)
             real_score_mrd, gen_score_mrd, _, _ = self.mrd(y=true_wav, y_hat=esti_wav, bandwidth_id=bandwidth_id)
             loss_mpd, loss_mpd_real, _ = self.disc_loss(

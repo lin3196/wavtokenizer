@@ -62,7 +62,7 @@ train_dataset:
   ]
   default_fs: 16000
   length_in_seconds: 3
-  num_data_per_epoch: 60000
+  num_data_per_epoch: 60
   random_start_point: True
   train: True
 
@@ -90,9 +90,9 @@ validation_dataloader:
   pin_memory: true
 
 trainer:
-  epochs: 1756
+  epochs: 2000
   save_checkpoint_interval: 100
   clip_grad_norm_value: 3.0
   exp_path: /work/user_data/xiaobin/Experiments/exp_codec/exp_wavtokenizer_official_16k_1Msteps
-  resume: True
+  resume: False
   resume_datetime: 2025-04-23-06h25m
