@@ -54,13 +54,14 @@ class MelSpectrogramFeatures(FeatureExtractor):
 class EncodecFeatures(FeatureExtractor):
     def __init__(
         self,
-        encodec_model: str = "encodec_24khz",
+        encodec_model: str = "encodec",
         bandwidths: List[float] = [1.5, 3.0, 6.0, 12.0],
         train_codebooks: bool = False,
         num_quantizers: int = 1, 
         dowmsamples: List[int] = [6, 5, 5, 4],
         vq_bins: int = 16384,
         vq_kmeans: int = 800,
+        kmeans_init: bool = True
     ):
         super().__init__()
 
@@ -77,12 +78,12 @@ class EncodecFeatures(FeatureExtractor):
                                 kernel_size=7, residual_kernel_size=3, last_kernel_size=7, dilation_base=2,
                                 true_skip=False, compress=2)
         quantizer = ResidualVectorQuantizer(dimension=512, n_q=n_q, bins=vq_bins, kmeans_iters=vq_kmeans,
-                                            decay=0.99, kmeans_init=True)
+                                            decay=0.99, kmeans_init=kmeans_init)
 
         # breakpoint()
-        if encodec_model == "encodec_24khz":
+        if encodec_model == "encodec":
             self.encodec = EncodecModel(encoder=encoder, decoder=decoder, quantizer=quantizer,
-                                        target_bandwidths=bandwidths, sample_rate=24000, channels=1)
+                                        target_bandwidths=bandwidths, sample_rate=16000, channels=1)
         else:
             raise ValueError(
                 f"Unsupported encodec_model: {encodec_model}. Supported options are 'encodec_24khz'."
@@ -110,7 +111,7 @@ class EncodecFeatures(FeatureExtractor):
         # breakpoint()
 
         emb = self.encodec.encoder(audio)
-        q_res = self.encodec.quantizer(emb, self.frame_rate, bandwidth=self.bandwidths[bandwidth_id])
+        q_res = self.encodec.quantizer(emb, self.frame_rate, bandwidth=self.bandwidths[int(bandwidth_id)])
         quantized = q_res.quantized
         codes = q_res.codes
         commit_loss = q_res.penalty                 # codes(8,16,75),features(16,128,75)

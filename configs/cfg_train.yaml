@@ -1,0 +1,98 @@
+network_config:
+  feature_extractor:
+    bandwidths: [6.6, 6.6, 6.6, 6.6]
+    train_codebooks: true
+    num_quantizers: 1  
+    dowmsamples: [8, 5, 4, 2]
+    vq_bins: 4096
+    vq_kmeans: 200
+    kmeans_init: False # when resume
+
+  backbone:
+    input_channels: 512
+    dim: 768
+    intermediate_dim: 2304
+    num_layers: 12
+    adanorm_num_embeddings: 4 
+  
+  head:
+    dim: 768
+    n_fft: 1280 
+    hop_length: 320  
+    padding: same
+  
+DDP:
+  world_size: 8
+
+optimizer:
+  lr: 2e-4
+
+scheduler:
+  num_warmup_steps: 0  # 0 epochs
+  num_training_steps: 1000000  # 2000 epochs
+    
+loss:
+  sampling_rate: 16000
+  n_mels: [5, 10, 20, 40, 80, 160, 320]
+  window_lengths: [32, 64, 128, 256, 512, 1024, 2048]
+  mag_weight: 0.0
+  log_weight: 1.0
+  pow: 1.0
+  weight: 1.0
+  window_type: "hann"
+
+coeff:
+  mel: 90
+  commit: 1000
+
+samplerate: 
+  16000
+  
+train_dataset:
+  speech_root: /work/data_cloud/speech_enhancement/formatted_data/train_data/speech_16k_shu26v1/
+  speech_datasets: [
+    LibrispeechCleanTrainSetShu26SprimeFullBandV1HighPitch,
+    LibrispeechCleanTrainSetShu26SprimeFullBandV1LowPitch,
+    LibrivoxChaptersTrainSetShu26SprimeFullBandV1HighPitch,
+    LibrivoxChaptersTrainSetShu26SprimeFullBandV1LowPitch,
+    IMDASpeechCorpusAnnotatedV1TrainSetShu26SprimeFullBandV1HighPitch,
+    IMDASpeechCorpusAnnotatedV1TrainSetShu26SprimeFullBandV1LowPitch,
+    UnitedNationsLibraryTrainSetShu26SprimeFullBandV1HighPitch,
+    UnitedNationsLibraryTrainSetShu26SprimeFullBandV1LowPitch
+  ]
+  default_fs: 16000
+  length_in_seconds: 3
+  num_data_per_epoch: 60000
+  random_start_point: True
+  train: True
+
+train_dataloader:
+  batch_size: 15
+  num_workers: 4
+  drop_last: True
+  pin_memory: True
+
+validation_dataset:
+  speech_root: /work/data_cloud/speech_enhancement/formatted_data/dev_data/speech_16k/
+  speech_datasets: [
+    LibrispeechCleanDevSet,
+    ChildrenStudioSpeech2021V1DevSet
+  ]
+  default_fs: 16000
+  length_in_seconds: 3
+  num_data_per_epoch: 1000
+  random_start_point: False
+  train: False
+
+validation_dataloader:
+  batch_size: 1
+  num_workers: 4
+  pin_memory: true
+
+trainer:
+  epochs: 1756
+  save_checkpoint_interval: 100
+  clip_grad_norm_value: 3.0
+  exp_path: /work/user_data/xiaobin/Experiments/exp_codec/exp_wavtokenizer_official_16k_1Msteps
+  resume: True
+  resume_datetime: 2025-04-23-06h25m

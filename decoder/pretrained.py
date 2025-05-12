@@ -98,7 +98,7 @@ class WavTokenizer(nn.Module):
         Class method to create a new Vocos model instance from a pre-trained model stored in the Hugging Face model hub.
         """
         model = self.from_hparams0802(config_path)
-        state_dict_raw = torch.load(model_path, map_location="cpu")['state_dict']
+        state_dict_raw = torch.load(model_path, map_location="cpu", weights_only=True)['state_dict']
         state_dict = dict()
         for k, v in state_dict_raw.items():
             if k.startswith('backbone.') or k.startswith('head.') or k.startswith('feature_extractor.'):
