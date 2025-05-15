@@ -22,7 +22,7 @@ import soundfile as sf
 from torch.utils.tensorboard import SummaryWriter
 from distributed_utils import reduce_value
 from transformers import get_cosine_schedule_with_warmup
-from dataloader import BBLDataset as Dataset
+from dataloader import LibriTTSDataset as Dataset
 from wavtokenizer import WavTokenizer
 from decoder.discriminator_dac import DACDiscriminator
 from decoder.discriminators import (
@@ -190,12 +190,7 @@ class Trainer:
         if self.rank == 0:
             shutil.copy2(__file__, self.exp_path)
             shutil.copy2(args.config, Path(self.exp_path) / 'config.yaml')
-            
-            for file in Path(__file__).parent.iterdir():
-                if file.is_file():
-                    shutil.copy2(file, self.code_path)
-            shutil.copytree(Path(__file__).parent / 'encoder', Path(self.code_path) / 'encoder', dirs_exist_ok=True)
-            shutil.copytree(Path(__file__).parent / 'decoder', Path(self.code_path) / 'decoder', dirs_exist_ok=True)
+            shutil.copytree(Path(__file__).parent, self.code_path, dirs_exist_ok=True)
             self.writer = SummaryWriter(self.log_path)
 
         self.start_epoch = 1

@@ -49,20 +49,14 @@ samplerate:
   16000
   
 train_dataset:
-  speech_root: /work/data_cloud/speech_enhancement/formatted_data/train_data/speech_16k_shu26v1/
-  speech_datasets: [
-    LibrispeechCleanTrainSetShu26SprimeFullBandV1HighPitch,
-    LibrispeechCleanTrainSetShu26SprimeFullBandV1LowPitch,
-    LibrivoxChaptersTrainSetShu26SprimeFullBandV1HighPitch,
-    LibrivoxChaptersTrainSetShu26SprimeFullBandV1LowPitch,
-    IMDASpeechCorpusAnnotatedV1TrainSetShu26SprimeFullBandV1HighPitch,
-    IMDASpeechCorpusAnnotatedV1TrainSetShu26SprimeFullBandV1LowPitch,
-    UnitedNationsLibraryTrainSetShu26SprimeFullBandV1HighPitch,
-    UnitedNationsLibraryTrainSetShu26SprimeFullBandV1LowPitch
+  root: [
+    "/work/project_data/disentangled_representations/datasets/speech_24k/LibriTTS/train-clean-100/",
+    "/work/project_data/disentangled_representations/datasets/speech_24k/LibriTTS/train-clean-360/",
+    "/work/project_data/disentangled_representations/datasets/speech_24k/LibriTTS/train-other-500/"
   ]
   default_fs: 16000
   length_in_seconds: 3
-  num_data_per_epoch: 60
+  num_data_per_epoch: 60000  # 500 iters per epoch
   random_start_point: True
   train: True
 
@@ -73,10 +67,9 @@ train_dataloader:
   pin_memory: True
 
 validation_dataset:
-  speech_root: /work/data_cloud/speech_enhancement/formatted_data/dev_data/speech_16k/
-  speech_datasets: [
-    LibrispeechCleanDevSet,
-    ChildrenStudioSpeech2021V1DevSet
+  root: [
+    "/work/project_data/disentangled_representations/datasets/speech_24k/LibriTTS/dev-clean/",
+    # "/work/project_data/disentangled_representations/datasets/speech_24k/LibriTTS/dev-other/"
   ]
   default_fs: 16000
   length_in_seconds: 3
@@ -90,7 +83,7 @@ validation_dataloader:
   pin_memory: true
 
 trainer:
-  epochs: 2000
+  epochs: 2000  # totally 2,000 x 500 = 1M steps
   save_checkpoint_interval: 100
   clip_grad_norm_value: 3.0
   exp_path: /work/user_data/xiaobin/Experiments/exp_codec/exp_wavtokenizer_official_16k_1Msteps
