@@ -21,7 +21,8 @@ from pathlib import Path
 import soundfile as sf
 from torch.utils.tensorboard import SummaryWriter
 from distributed_utils import reduce_value
-from transformers import get_cosine_schedule_with_warmup
+# from transformers import get_cosine_schedule_with_warmup
+from utils import LinearWarmupCosineAnnealingLR as Scheduler
 from dataloader import LibriTTSDataset as Dataset
 from wavtokenizer import WavTokenizer
 from decoder.discriminator_dac import DACDiscriminator
@@ -108,8 +109,8 @@ def run(rank, config, args):
     optimizer_g = torch.optim.AdamW(params=generator.parameters(), lr=config['optimizer']['lr'], betas=(0.8, 0.99), weight_decay=0.01)
     optimizer_d = torch.optim.AdamW(params=disc_params, lr=config['optimizer']['lr'], betas=(0.8, 0.99), weight_decay=0.01)
 
-    scheduler_g = get_cosine_schedule_with_warmup(optimizer_g, **config['scheduler'])
-    scheduler_d = get_cosine_schedule_with_warmup(optimizer_d, **config['scheduler'])
+    scheduler_g = Scheduler(optimizer_g, **config['scheduler'])
+    scheduler_d = Scheduler(optimizer_d, **config['scheduler'])
 
     trainer = Trainer(config=config, model=[generator, mpd, mrd, dacd],
                       optimizer=[optimizer_g, optimizer_d], 
@@ -158,8 +159,8 @@ class Trainer:
         self.lamda_mel_base = config['coeff']['mel']
         self.lamda_mel = self.lamda_mel_base
         self.lamda_comm = config['coeff']['commit']
-        self.max_steps = config['scheduler']['num_training_steps']
-        self.num_warmup_steps = config['scheduler']['num_warmup_steps']
+        self.max_steps = config['scheduler']['decay_until_step']
+        self.num_warmup_steps = config['scheduler']['warmup_steps']
         self.global_steps = 0
         
         self.bandwidths = config['network_config']['feature_extractor']['bandwidths']

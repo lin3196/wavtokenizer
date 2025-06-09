@@ -28,8 +28,12 @@ optimizer:
   lr: 2e-4
 
 scheduler:
-  num_warmup_steps: 0  # 0 epochs
-  num_training_steps: 1000000  # 2000 epochs
+  # num_warmup_steps: 0  # 0 epochs
+  # num_training_steps: 1000000  # 2000 epochs
+  warmup_steps: 0
+  decay_until_step: 1000000
+  max_lr: 2e-4
+  min_lr: 1e-6
     
 loss:
   sampling_rate: 16000
@@ -61,7 +65,7 @@ train_dataset:
   train: True
 
 train_dataloader:
-  batch_size: 15
+  batch_size: 10
   num_workers: 4
   drop_last: True
   pin_memory: True
